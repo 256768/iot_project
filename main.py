@@ -42,7 +42,7 @@ def vjezd():
     spz = spz_gen()
     save_to_local(spz)
     time.sleep(3)
-    print("i" + spz)
+    send_away("i", spz)
 
 def vyjezd():
     reset_timer()
@@ -50,10 +50,21 @@ def vyjezd():
     RGB_LEDS.write()
     spz = read_from_local()
     time.sleep(3)
-    print("o" + spz)
+    send_away("o", spz)
+    
+def get_car_num():
+    with open("spz.txt", "r") as file:
+        print("POCET AUT")
+        print(len(file.readlines()))
+    
+    return None
+
+send_radio_flag = False
 
 def send_radio_information(timer):
-    print("sRADIOINF")
+    global send_radio_flag
+    send_radio_flag = True
+    get_car_num()
     
 def save_to_local(spz):
     with open("spz.txt", "a") as dst:
@@ -73,6 +84,10 @@ def read_from_local():
             dst.write(line)
     print("Reading SPZ from spz.txt")
     return spz.strip()
+
+def send_away(flag, value):
+    print("SENDING: ")
+    print(flag+value)
 
 def core2_task():
     sel0 = Pin(2, Pin.OUT)
@@ -198,25 +213,36 @@ while True:
     RGB_LEDS[1] = (0, 50, 0, 0)
     RGB_LEDS.write()
     
+    if send_radio_flag:
+        send_radio_flag = False
+        data = module.sendCommand("AT+QCSQ\r\n")
+        print(data)
+        if "+QCSQ:" in data:
+            try:
+                parts = data.split(',')
+                print(parts)
+
+                sysmode = str(parts[0].split('"')[1])
+                RSSI = int(parts[1])
+                RSRP = int(parts[2])
+                SINR = float((int(parts[3])/5) - 20)
+                RSRQ = str(parts[4].split("\r")[0])
+                
+                print(sysmode)
+                print(RSSI)
+                print(RSRP)
+                print(SINR)
+                print(RSRQ)
+                
+                send_away("s", f"{RSRP},{SINR}")
+                
+            except Exception as e:
+                print("Parse error:", e)
     
     try:
-        data = readline()
-        
-        
-
-        
-        if bg_uart.any():
-            time.sleep(.01)
-            data = bg_uart.read()
-            print(data)
-        time.sleep(.1)
+        pass
     except KeyboardInterrupt:
         break
     except:
         pass
-
-
-
-
-
 
