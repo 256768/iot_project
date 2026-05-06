@@ -32,28 +32,16 @@ def spz_gen():
     
     return f"{znak1}{znak2}{znak3}{znak4}"
 
-def check_vjezd(timer):
-    if RGB_LEDS[1] != (0, 50, 0, 0):
-        check_timer.init(mode=Timer.ONE_SHOT, period=500, callback=check_vjezd)
-    else:
-        vjezd()
-
-def check_vyjezd(timer):
-    if RGB_LEDS[0] != (0, 50, 0, 0):
-        check_timer.init(mode=Timer.ONE_SHOT, period=500, callback=check_vyjezd)
-    else:
-        vyjezd()
-
 def vjezd():
-    global last_spz, last_dir
+    global last_msg
     reset_timer()
-    RGB_LEDS[0] = (50, 0, 0, 0)
+    RGB_LEDS[0] = (50, 50, 0, 0)
     RGB_LEDS.write()
     spz = spz_gen()
     save_to_local(spz)
     time.sleep(3)
-    last_spz, last_dir = (spz, "i")
-    send_away("i", f"{spz},{get_free_spaces()}")
+    last_msg = "o"+spz
+    send_away("i", spz)
 
 def vyjezd():
     global last_spz, last_dir
@@ -62,12 +50,12 @@ def vyjezd():
     RGB_LEDS.write()
     spz = read_from_local()
     time.sleep(3)
-    last_spz, last_dir = (spz, "o")
-    send_away("o", f"{spz},{get_car_num()}")
+    last_msg = "o"+spz
+    send_away("o", spz)
     
 def get_car_num():
     with open("spz.txt", "r") as file:
-        return len(file.readlines())
+        return len(file.readlines())+1
     return None
 
 def send_radio_information(timer):
@@ -86,7 +74,7 @@ def send_radio_information(timer):
 
             print("Radio information", (sysmode, rssi, rsrp, sinr, rsrq))
 
-            send_away("s", f"{rsrp},{sinr}")
+            send_away("s", f"{rsrp},{sinr},{get_car_num()}")
 
         except Exception as e:
             print("Parse error:", e)
@@ -113,29 +101,21 @@ def read_from_local():
     return spz.strip()
 
 def send_away(flag, value):
-    print("SENDING:", flag+value)
+    print("Sending message:", flag+value)
     if socket.send(flag+value, 2):
         print("Send successful")
     else:
         print("Send failed")
-
-spoll=uselect.poll()
-spoll.register(sys.stdin,uselect.POLLIN)
 
 previous_ticks = 0
 
 timer = Timer(-1)
 reset_timer()
 
-check_timer = Timer(-1)
-
 VJEZD_BTN = Pin(28,Pin.IN)
 VYJEZD_BTN = Pin(6,Pin.IN)
-#VJEZD_BTN.irq(trigger=Pin.IRQ_FALLING, handler=check_vjezd)
-#VYJEZD_BTN.irq(trigger=Pin.IRQ_FALLING, handler=check_vyjezd)
 
-last_spz = ""
-last_dir = ""
+last_msg = ""
 
 RGB_LEDS = neopixel.NeoPixel(Pin(16), 3, bpp=4)
 
@@ -146,14 +126,19 @@ RGB_LEDS[2] = (0,0,0,0)
 RGB_LEDS.write()
 
 pon_trig = Pin(9,Pin.OUT)
+pon_trig.value(1)
+time.sleep(0.3)
+pon_trig.value(0)
 
 bg_uart = machine.UART(0, baudrate=115200, tx=Pin(0), rxbuf=256, rx=Pin(1), timeout=0, timeout_char=1)
 
-bg_uart.write(bytes("AT\r\n","ascii"))
-print(bg_uart.read(10))
-
-
-module = BG77.BG77(bg_uart, verbose=True, radio=False)
+while True:
+    try:
+        module = BG77.BG77(bg_uart, verbose=True, radio=False)
+        break
+    except OSError:
+        print("Module is not ready yet")
+        time.sleep(0.5)
 
 time.sleep(0.3)
 module.sendCommand("AT+QURCCFG=\"urcport\",\"uart1\"\r\n")
@@ -164,36 +149,22 @@ module.sendCommand("AT+CEDRXS=0\r\n")
 time.sleep(3)
 
 # Automatic NB-IoT/LTE CAT-M selection, LTE CAT-M preferred
-module.setRATType(2)
+#module.setRATType(2)  # does not work
+auto_handover = module.sendCommand("AT+QCFG=\"iotopmode\",2,1\r\n")
+if "OK" in auto_handover:
+    print("RAT type set successfully")
+else:
+    print("RAT type setting failed")
 
-module.sendCommand("AT+QCFG=\"band\",0x0,0x80084,0x80084,1\r\n")
+#module.sendCommand("AT+QCFG=\"band\",0x0,0x80084,0x80084,1\r\n")
 module.setRadio(1)
 module.setAPN(config.APN)
 
 module.setOperator(BG77.COPS_MANUAL, config.OPERATOR)
 
-def waitForCEREG():
-    data_out = ""
-    while True:
-        data_tmp = bg_uart.read(1)
-        if data_tmp:
-            data_out = data_out + str(data_tmp, 'ascii')
-        if "+CEREG: 5" in data_out:
-            time.sleep(.01)
-            data_tmp = bg_uart.read()
-            data_out = data_out + str(data_tmp, 'ascii')
-            return
-
-#waitForCEREG()
-
-'''
-print(f"Init: {time.ticks_ms()}")
-while True:
-    data = bg_uart.read()
-    print(f"{time.ticks_ms()} {data}")
-    time.sleep(1)
-'''
-
+while not module.isRegistered():
+    print("Not registered yet")
+    time.sleep(0.5)
 
 module.sendCommand("AT+QCSCON=1\r\n")
 
@@ -201,14 +172,14 @@ print("Device Ready")
 
 socket_open, socket = module.socket(BG77.AF_INET, BG77.SOCK_DGRAM)
 if socket_open:
-    socket.setTimeout(1)
+    socket.settimeout(1)
     socket.connect(config.IPV4, config.PORT)
     print("Socket Open")
 else:
     print("Error occurred while opening socket")
 
 while True:
-    if previous_ticks <= time.ticks_ms() - CHECK_INTERVAL:
+    if previous_ticks <= time.ticks_ms() - config.CHECK_INTERVAL:
         if not VYJEZD_BTN.value():
             vyjezd()
         elif not VJEZD_BTN.value() and not is_full():

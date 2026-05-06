@@ -12,3 +12,4 @@ PORT = "65525"
 
 # Capacity
 CAPACITY = 10
+CHECK_INTERVAL = 100  # [ms]
