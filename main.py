@@ -111,7 +111,6 @@ def send_away(flag, value):
 previous_ticks = 0
 
 timer = Timer(-1)
-reset_timer()
 
 VJEZD_BTN = Pin(28,Pin.IN)
 VYJEZD_BTN = Pin(6,Pin.IN)
@@ -170,6 +169,8 @@ while not module.isRegistered():
 module.sendCommand("AT+QCSCON=1\r\n")
 
 print("Device Ready")
+
+reset_timer()
 
 socket_open, socket = module.socket(BG77.AF_INET, BG77.SOCK_DGRAM)
 if socket_open:
