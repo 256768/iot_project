@@ -209,8 +209,6 @@ while not module.isRegistered():
     print("Not registered yet")
     time.sleep(0.5)
 
-module.sendCommand("AT+QCSCON=1\r\n")
-
 print("Device Ready")
 
 reset_timer()
