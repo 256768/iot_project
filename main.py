@@ -80,7 +80,7 @@ def send_radio_information(timer):
 
             print("Radio information", (sysmode, rssi, rsrp, sinr, rsrq))
 
-            send_away("s", f"{rsrp},{sinr},{get_car_num()}")
+            send_away("s", f"{rsrp},{sinr},{get_car_num()}", 1)
 
         except Exception as e:
             print("Parse error:", e)
@@ -109,9 +109,9 @@ def read_from_local():
     return spz.strip()
 
 
-def send_away(flag, value):
+def send_away(flag, value, rai=2):
     print("Sending message:", flag + value)
-    if socket.send(flag + value, 2):
+    if socket.send(flag + value, rai):
         print("Send successful")
     else:
         print("Send failed")
