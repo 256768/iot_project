@@ -49,6 +49,8 @@ def vyjezd():
     RGB_LEDS.write()
     spz = read_from_local()
     time.sleep(3)
+    if spz is None:
+        return
     last_msg = "o"+spz
     send_away("o", spz)
     
@@ -88,8 +90,8 @@ def save_to_local(spz):
 def read_from_local():
     with open("spz.txt", "r") as src:
         lines = src.readlines()
-    if lines == []:
-        return "0A00000"
+    if not lines:
+        return None
     spz = random.choice(lines)
     lines.remove(spz)
     os.remove("spz.txt")
