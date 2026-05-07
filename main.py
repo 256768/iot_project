@@ -1,3 +1,4 @@
+"""Parking system IoT application, BPC-IOT course project 2026"""
 import os
 import random
 import time
@@ -10,19 +11,28 @@ import BG77
 import config
 
 
-def is_full():
+def is_full() -> bool:
+    """Check if parking lot full
+
+    :return: True if parking lot full, False otherwise
+    """
     if get_car_num() <= config.CAPACITY:
         return False
     else:
         return True
 
 
-def reset_timer():
+def reset_timer() -> None:
+    """Reset timer for sending radio information"""
     print("Timer reset")
     timer.init(mode=Timer.PERIODIC, period=config.RADIO_INFO_PERIOD * 1000, callback=send_radio_information)
 
 
-def spz_gen():
+def spz_gen() -> str:
+    """ Generate random license plate (SPZ in Czech)
+
+    :return: license plate in Czech format
+    """
     kraje = "ABCDEHJKLMPSTUZ"
     pismena = "0123456789ABCDEFHJKLMNPRSTUVXYZ"
 
@@ -34,7 +44,8 @@ def spz_gen():
     return f"{znak1}{znak2}{znak3}{znak4}"
 
 
-def vjezd():
+def arrival() -> None:
+    """Arrival of new car to the parking lot"""
     global last_msg
     timer.deinit()
     reset_timer()
@@ -47,7 +58,8 @@ def vjezd():
     send_away("i", spz)
 
 
-def vyjezd():
+def departure() -> None:
+    """Departure of a car from the parking lot"""
     global last_msg
     timer.deinit()
     reset_timer()
@@ -61,12 +73,20 @@ def vyjezd():
     send_away("o", spz)
 
 
-def get_car_num():
+def get_car_num() -> int:
+    """Get number of cars on the parking lot
+
+    :return: occupied car spaces
+    """
     with open("spz.txt", "r") as file:
         return len(file.readlines()) + 1
 
 
-def send_radio_information(timer):
+def send_radio_information(timer: Timer) -> None:
+    """Get and send radio information
+
+    :param timer: Timer passed by executing timer
+    """
     data = module.sendCommand("AT+QCSQ\r\n")
     if "+QCSQ:" in data:
         try:
@@ -88,13 +108,21 @@ def send_radio_information(timer):
         print("Bad response to QCSQ")
 
 
-def save_to_local(spz):
+def save_to_local(spz: str) -> None:
+    """Save license plate to local file
+
+    :param spz: license plate
+    """
     with open("spz.txt", "a") as dst:
         dst.write(spz + "\n")
     print("Saving SPZ to spz.txt")
 
 
-def read_from_local():
+def read_from_local() -> str | None:
+    """Read and pop license plate from local file
+
+    :return: popped license plate
+    """
     with open("spz.txt", "r") as src:
         lines = src.readlines()
     if not lines:
@@ -109,7 +137,13 @@ def read_from_local():
     return spz.strip()
 
 
-def send_away(flag, value, rai=2):
+def send_away(flag: str, value: str, rai: int = 2) -> None:
+    """Send data to the socket
+
+    :param flag: message type
+    :param value: message value
+    :param rai: Release Assistance Indication (NB-IoT only; 0 none, 1 one uplink, 2 one uplink one downlink)
+    """
     print("Sending message:", flag + value)
     if socket.send(flag + value, rai):
         print("Send successful")
@@ -121,8 +155,8 @@ previous_ticks = 0
 
 timer = Timer(-1)
 
-VJEZD_BTN = Pin(28, Pin.IN)
-VYJEZD_BTN = Pin(6, Pin.IN)
+arrival_btn = Pin(28, Pin.IN)
+departure_btn = Pin(6, Pin.IN)
 
 last_msg = ""
 
@@ -191,15 +225,15 @@ else:
 
 while True:
     if previous_ticks <= time.ticks_ms() - config.CHECK_INTERVAL:
-        if not VYJEZD_BTN.value():
-            vyjezd()
-        elif not VJEZD_BTN.value() and not is_full():
-            vjezd()
+        if not departure_btn.value():
+            departure()
+        elif not arrival_btn.value() and not is_full():
+            arrival()
         elif not is_full():
             RGB_LEDS[0] = (0, 50, 0, 0)
         else:
             RGB_LEDS[0] = (50, 0, 0, 0)
-        # vyjezd vzdy povolen
+        # departure always allowed
         RGB_LEDS[1] = (0, 50, 0, 0)
         RGB_LEDS.write()
         previous_ticks = time.ticks_ms()
