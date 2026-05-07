@@ -16,20 +16,23 @@ def is_full():
     else:
         return True
 
+
 def reset_timer():
     print("Timer reset")
-    timer.init(mode=Timer.PERIODIC, period=config.RADIO_INFO_PERIOD*1000, callback=send_radio_information)
+    timer.init(mode=Timer.PERIODIC, period=config.RADIO_INFO_PERIOD * 1000, callback=send_radio_information)
+
 
 def spz_gen():
     kraje = "ABCDEHJKLMPSTUZ"
     pismena = "0123456789ABCDEFHJKLMNPRSTUVXYZ"
-    
+
     znak1 = str(random.randint(1, 9))
     znak2 = random.choice(kraje)
     znak3 = random.choice(pismena)
     znak4 = "%04d" % random.randint(1, 9999)
-    
+
     return f"{znak1}{znak2}{znak3}{znak4}"
+
 
 def vjezd():
     global last_msg
@@ -39,8 +42,9 @@ def vjezd():
     spz = spz_gen()
     save_to_local(spz)
     time.sleep(3)
-    last_msg = "o"+spz
+    last_msg = "o" + spz
     send_away("i", spz)
+
 
 def vyjezd():
     global last_msg
@@ -51,9 +55,10 @@ def vyjezd():
     time.sleep(3)
     if spz is None:
         return
-    last_msg = "o"+spz
+    last_msg = "o" + spz
     send_away("o", spz)
-    
+
+
 def get_car_num():
     with open("spz.txt", "r") as file:
         return len(file.readlines())+1
@@ -79,11 +84,13 @@ def send_radio_information(timer):
             print("Parse error:", e)
     else:
         print("Bad response to QCSQ")
-    
+
+
 def save_to_local(spz):
     with open("spz.txt", "a") as dst:
-        dst.write(spz+"\n")
+        dst.write(spz + "\n")
     print("Saving SPZ to spz.txt")
+
 
 def read_from_local():
     with open("spz.txt", "r") as src:
@@ -99,31 +106,33 @@ def read_from_local():
     print("Reading SPZ from spz.txt")
     return spz.strip()
 
+
 def send_away(flag, value):
-    print("Sending message:", flag+value)
-    if socket.send(flag+value, 2):
+    print("Sending message:", flag + value)
+    if socket.send(flag + value, 2):
         print("Send successful")
     else:
         print("Send failed")
+
 
 previous_ticks = 0
 
 timer = Timer(-1)
 
-VJEZD_BTN = Pin(28,Pin.IN)
-VYJEZD_BTN = Pin(6,Pin.IN)
+VJEZD_BTN = Pin(28, Pin.IN)
+VYJEZD_BTN = Pin(6, Pin.IN)
 
 last_msg = ""
 
 RGB_LEDS = neopixel.NeoPixel(Pin(16), 3, bpp=4)
 
-RGB_LEDS[0] = (0,0,0,0)
-RGB_LEDS[1] = (0,0,0,0)
-RGB_LEDS[2] = (0,0,0,0)
+RGB_LEDS[0] = (0, 0, 0, 0)
+RGB_LEDS[1] = (0, 0, 0, 0)
+RGB_LEDS[2] = (0, 0, 0, 0)
 
 RGB_LEDS.write()
 
-pon_trig = Pin(9,Pin.OUT)
+pon_trig = Pin(9, Pin.OUT)
 pon_trig.value(1)
 time.sleep(0.3)
 pon_trig.value(0)
@@ -147,14 +156,14 @@ module.sendCommand("AT+CEDRXS=0\r\n")
 time.sleep(3)
 
 # Automatic NB-IoT/LTE CAT-M selection, LTE CAT-M preferred
-#module.setRATType(2)  # does not work
+# module.setRATType(2)  # does not work
 auto_handover = module.sendCommand("AT+QCFG=\"iotopmode\",2,1\r\n")
 if "OK" in auto_handover:
     print("RAT type set successfully")
 else:
     print("RAT type setting failed")
 
-#module.sendCommand("AT+QCFG=\"band\",0x0,0x80084,0x80084,1\r\n")
+# module.sendCommand("AT+QCFG=\"band\",0x0,0x80084,0x80084,1\r\n")
 module.setRadio(1)
 module.setAPN(config.APN)
 
@@ -220,4 +229,3 @@ while True:
         break
     except:
         pass
-
