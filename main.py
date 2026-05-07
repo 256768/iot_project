@@ -43,7 +43,7 @@ def vjezd():
     send_away("i", spz)
 
 def vyjezd():
-    global last_spz, last_dir
+    global last_msg
     reset_timer()
     RGB_LEDS[1] = (0, 0, 50, 0)
     RGB_LEDS.write()
