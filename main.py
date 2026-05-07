@@ -61,8 +61,8 @@ def vyjezd():
 
 def get_car_num():
     with open("spz.txt", "r") as file:
-        return len(file.readlines())+1
-    return None
+        return len(file.readlines()) + 1
+
 
 def send_radio_information(timer):
     data = module.sendCommand("AT+QCSQ\r\n")
