@@ -36,6 +36,7 @@ def spz_gen():
 
 def vjezd():
     global last_msg
+    timer.deinit()
     reset_timer()
     RGB_LEDS[0] = (50, 50, 0, 0)
     RGB_LEDS.write()
@@ -48,6 +49,7 @@ def vjezd():
 
 def vyjezd():
     global last_msg
+    timer.deinit()
     reset_timer()
     RGB_LEDS[1] = (0, 0, 50, 0)
     RGB_LEDS.write()
@@ -226,6 +228,7 @@ while True:
         time.sleep(.1)
     except KeyboardInterrupt:
         socket.close()
+        timer.deinit()
         break
     except:
         pass
