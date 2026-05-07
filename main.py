@@ -4,7 +4,6 @@ import time
 
 import machine
 import neopixel
-import sys
 from machine import Timer, Pin
 
 import BG77
