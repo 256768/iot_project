@@ -61,11 +61,9 @@ def get_car_num():
 
 def send_radio_information(timer):
     data = module.sendCommand("AT+QCSQ\r\n")
-    print(data)
     if "+QCSQ:" in data:
         try:
             parts = data.split(',')
-            print(parts)
 
             sysmode = str(parts[0].split('"')[1])
             rssi = int(parts[1])
