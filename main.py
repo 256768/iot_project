@@ -70,7 +70,7 @@ def send_radio_information(timer):
             sysmode = str(parts[0].split('"')[1])
             rssi = int(parts[1])
             rsrp = int(parts[2])
-            sinr = float((int(parts[3]) / 5) - 20)
+            sinr = round(float((int(parts[3]) / 5) - 20))
             rsrq = str(parts[4].split("\r")[0])
 
             print("Radio information", (sysmode, rssi, rsrp, sinr, rsrq))
