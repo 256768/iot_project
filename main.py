@@ -16,7 +16,7 @@ def is_full() -> bool:
 
     :return: True if parking lot full, False otherwise
     """
-    if get_car_num() <= config.CAPACITY:
+    if get_car_num() < config.CAPACITY:
         return False
     else:
         return True
@@ -79,7 +79,7 @@ def get_car_num() -> int:
     :return: occupied car spaces
     """
     with open("spz.txt", "r") as file:
-        return len(file.readlines()) + 1
+        return len(file.readlines())
 
 
 def send_radio_information(timer: Timer) -> None:
