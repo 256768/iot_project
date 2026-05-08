@@ -24,8 +24,9 @@ def is_full() -> bool:
 
 def reset_timer() -> None:
     """Reset timer for sending radio information"""
-    print("Timer reset")
+    timer.deinit()
     timer.init(mode=Timer.PERIODIC, period=config.RADIO_INFO_PERIOD * 1000, callback=send_radio_information)
+    print("Timer reset")
 
 
 def spz_gen() -> str:
@@ -46,7 +47,6 @@ def spz_gen() -> str:
 
 def arrival() -> None:
     """Arrival of new car to the parking lot"""
-    timer.deinit()
     reset_timer()
     RGB_LEDS[0] = (50, 50, 0, 0)
     RGB_LEDS.write()
@@ -58,7 +58,6 @@ def arrival() -> None:
 
 def departure() -> None:
     """Departure of a car from the parking lot"""
-    timer.deinit()
     reset_timer()
     RGB_LEDS[1] = (0, 0, 50, 0)
     RGB_LEDS.write()
