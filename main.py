@@ -67,7 +67,7 @@ def departure() -> None:
     RGB_LEDS.write()
     spz = read_from_local()
     time.sleep(3)
-    if spz is None:
+    if spz == "":
         return
     last_msg = "o" + spz
     send_away("o", spz)
@@ -118,7 +118,7 @@ def save_to_local(spz: str) -> None:
     print("Saving SPZ to spz.txt")
 
 
-def read_from_local() -> str | None:
+def read_from_local() -> str:
     """Read and pop license plate from local file
 
     :return: popped license plate
@@ -126,7 +126,8 @@ def read_from_local() -> str | None:
     with open("spz.txt", "r") as src:
         lines = src.readlines()
     if not lines:
-        return None
+        print("Allowing nonexistent vehicle to leave")
+        return ""
     spz = random.choice(lines)
     lines.remove(spz)
     os.remove("spz.txt")
