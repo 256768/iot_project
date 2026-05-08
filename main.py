@@ -1,96 +1,132 @@
+"""Parking system IoT application, BPC-IOT course project 2026"""
 import os
 import random
 import time
 
 import machine
 import neopixel
-import sys
 from machine import Timer, Pin
 
 import BG77
 import config
 
 
-def is_full():
+def is_full() -> bool:
+    """Check if parking lot full
+
+    :return: True if parking lot full, False otherwise
+    """
     if get_car_num() <= config.CAPACITY:
         return False
     else:
         return True
 
-def reset_timer():
-    print("Timer reset")
-    timer.init(mode=Timer.PERIODIC, period=config.RADIO_INFO_PERIOD*1000, callback=send_radio_information)
 
-def spz_gen():
+def reset_timer() -> None:
+    """Reset timer for sending radio information"""
+    print("Timer reset")
+    timer.init(mode=Timer.PERIODIC, period=config.RADIO_INFO_PERIOD * 1000, callback=send_radio_information)
+
+
+def spz_gen() -> str:
+    """ Generate random license plate (SPZ in Czech)
+
+    :return: license plate in Czech format
+    """
     kraje = "ABCDEHJKLMPSTUZ"
     pismena = "0123456789ABCDEFHJKLMNPRSTUVXYZ"
-    
+
     znak1 = str(random.randint(1, 9))
     znak2 = random.choice(kraje)
     znak3 = random.choice(pismena)
     znak4 = "%04d" % random.randint(1, 9999)
-    
+
     return f"{znak1}{znak2}{znak3}{znak4}"
 
-def vjezd():
+
+def arrival() -> None:
+    """Arrival of new car to the parking lot"""
     global last_msg
+    timer.deinit()
     reset_timer()
     RGB_LEDS[0] = (50, 50, 0, 0)
     RGB_LEDS.write()
     spz = spz_gen()
     save_to_local(spz)
     time.sleep(3)
-    last_msg = "o"+spz
+    last_msg = "o" + spz
     send_away("i", spz)
 
-def vyjezd():
-    global last_spz, last_dir
+
+def departure() -> None:
+    """Departure of a car from the parking lot"""
+    global last_msg
+    timer.deinit()
     reset_timer()
     RGB_LEDS[1] = (0, 0, 50, 0)
     RGB_LEDS.write()
     spz = read_from_local()
     time.sleep(3)
-    last_msg = "o"+spz
+    if spz is None:
+        return
+    last_msg = "o" + spz
     send_away("o", spz)
-    
-def get_car_num():
-    with open("spz.txt", "r") as file:
-        return len(file.readlines())+1
-    return None
 
-def send_radio_information(timer):
+
+def get_car_num() -> int:
+    """Get number of cars on the parking lot
+
+    :return: occupied car spaces
+    """
+    with open("spz.txt", "r") as file:
+        return len(file.readlines()) + 1
+
+
+def send_radio_information(timer: Timer) -> None:
+    """Get and send radio information
+
+    :param timer: Timer passed by executing timer
+    """
     data = module.sendCommand("AT+QCSQ\r\n")
-    print(data)
     if "+QCSQ:" in data:
         try:
             parts = data.split(',')
-            print(parts)
 
             sysmode = str(parts[0].split('"')[1])
             rssi = int(parts[1])
             rsrp = int(parts[2])
-            sinr = float((int(parts[3]) / 5) - 20)
+            sinr = round(float((int(parts[3]) / 5) - 20))
             rsrq = str(parts[4].split("\r")[0])
 
             print("Radio information", (sysmode, rssi, rsrp, sinr, rsrq))
 
-            send_away("s", f"{rsrp},{sinr},{get_car_num()}")
+            send_away("s", f"{rsrp},{sinr},{get_car_num()}", 1)
 
         except Exception as e:
             print("Parse error:", e)
     else:
         print("Bad response to QCSQ")
-    
-def save_to_local(spz):
+
+
+def save_to_local(spz: str) -> None:
+    """Save license plate to local file
+
+    :param spz: license plate
+    """
     with open("spz.txt", "a") as dst:
-        dst.write(spz+"\n")
+        dst.write(spz + "\n")
     print("Saving SPZ to spz.txt")
 
-def read_from_local():
+
+def read_from_local() -> str | None:
+    """Read and pop license plate from local file
+
+    :return: popped license plate
+    """
     with open("spz.txt", "r") as src:
         lines = src.readlines()
-    if lines == []:
-        return "0A00000"
+    if not lines:
+        return None
     spz = random.choice(lines)
     lines.remove(spz)
     os.remove("spz.txt")
@@ -100,32 +136,39 @@ def read_from_local():
     print("Reading SPZ from spz.txt")
     return spz.strip()
 
-def send_away(flag, value):
-    print("Sending message:", flag+value)
-    if socket.send(flag+value, 2):
+
+def send_away(flag: str, value: str, rai: int = 2) -> None:
+    """Send data to the socket
+
+    :param flag: message type
+    :param value: message value
+    :param rai: Release Assistance Indication (NB-IoT only; 0 none, 1 one uplink, 2 one uplink one downlink)
+    """
+    print("Sending message:", flag + value)
+    if socket.send(flag + value, rai):
         print("Send successful")
     else:
         print("Send failed")
 
+
 previous_ticks = 0
 
 timer = Timer(-1)
-reset_timer()
 
-VJEZD_BTN = Pin(28,Pin.IN)
-VYJEZD_BTN = Pin(6,Pin.IN)
+arrival_btn = Pin(28, Pin.IN)
+departure_btn = Pin(6, Pin.IN)
 
 last_msg = ""
 
 RGB_LEDS = neopixel.NeoPixel(Pin(16), 3, bpp=4)
 
-RGB_LEDS[0] = (0,0,0,0)
-RGB_LEDS[1] = (0,0,0,0)
-RGB_LEDS[2] = (0,0,0,0)
+RGB_LEDS[0] = (0, 0, 0, 0)
+RGB_LEDS[1] = (0, 0, 0, 0)
+RGB_LEDS[2] = (0, 0, 0, 0)
 
 RGB_LEDS.write()
 
-pon_trig = Pin(9,Pin.OUT)
+pon_trig = Pin(9, Pin.OUT)
 pon_trig.value(1)
 time.sleep(0.3)
 pon_trig.value(0)
@@ -149,14 +192,14 @@ module.sendCommand("AT+CEDRXS=0\r\n")
 time.sleep(3)
 
 # Automatic NB-IoT/LTE CAT-M selection, LTE CAT-M preferred
-#module.setRATType(2)  # does not work
+# module.setRATType(2)  # does not work
 auto_handover = module.sendCommand("AT+QCFG=\"iotopmode\",2,1\r\n")
 if "OK" in auto_handover:
     print("RAT type set successfully")
 else:
     print("RAT type setting failed")
 
-#module.sendCommand("AT+QCFG=\"band\",0x0,0x80084,0x80084,1\r\n")
+# module.sendCommand("AT+QCFG=\"band\",0x0,0x80084,0x80084,1\r\n")
 module.setRadio(1)
 module.setAPN(config.APN)
 
@@ -166,9 +209,9 @@ while not module.isRegistered():
     print("Not registered yet")
     time.sleep(0.5)
 
-module.sendCommand("AT+QCSCON=1\r\n")
-
 print("Device Ready")
+
+reset_timer()
 
 socket_open, socket = module.socket(BG77.AF_INET, BG77.SOCK_DGRAM)
 if socket_open:
@@ -180,15 +223,15 @@ else:
 
 while True:
     if previous_ticks <= time.ticks_ms() - config.CHECK_INTERVAL:
-        if not VYJEZD_BTN.value():
-            vyjezd()
-        elif not VJEZD_BTN.value() and not is_full():
-            vjezd()
+        if not departure_btn.value():
+            departure()
+        elif not arrival_btn.value() and not is_full():
+            arrival()
         elif not is_full():
             RGB_LEDS[0] = (0, 50, 0, 0)
         else:
             RGB_LEDS[0] = (50, 0, 0, 0)
-        # vyjezd vzdy povolen
+        # departure always allowed
         RGB_LEDS[1] = (0, 50, 0, 0)
         RGB_LEDS.write()
         previous_ticks = time.ticks_ms()
@@ -217,7 +260,7 @@ while True:
         time.sleep(.1)
     except KeyboardInterrupt:
         socket.close()
+        timer.deinit()
         break
     except:
         pass
-
