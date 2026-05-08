@@ -46,7 +46,6 @@ def spz_gen() -> str:
 
 def arrival() -> None:
     """Arrival of new car to the parking lot"""
-    global last_msg
     timer.deinit()
     reset_timer()
     RGB_LEDS[0] = (50, 50, 0, 0)
@@ -54,13 +53,11 @@ def arrival() -> None:
     spz = spz_gen()
     save_to_local(spz)
     time.sleep(3)
-    last_msg = "o" + spz
-    send_away("i", spz)
+    send_away("i", spz, ack=False)  # disabled until fix is available
 
 
 def departure() -> None:
     """Departure of a car from the parking lot"""
-    global last_msg
     timer.deinit()
     reset_timer()
     RGB_LEDS[1] = (0, 0, 50, 0)
@@ -69,8 +66,7 @@ def departure() -> None:
     time.sleep(3)
     if spz == "":
         return
-    last_msg = "o" + spz
-    send_away("o", spz)
+    send_away("o", spz, ack=False)  # disabled until fix is available
 
 
 def get_car_num() -> int:
@@ -138,18 +134,31 @@ def read_from_local() -> str:
     return spz.strip()
 
 
-def send_away(flag: str, value: str, rai: int = 2) -> None:
+def send_away(flag: str, value: str, rai: int = 2, ack: bool = False, resends: int = 3) -> None:
     """Send data to the socket
 
     :param flag: message type
     :param value: message value
     :param rai: Release Assistance Indication (NB-IoT only; 0 none, 1 one uplink, 2 one uplink one downlink)
+    :param ack: acknowledge the message and resend if necessary
+    :param resends: how much resends to try when acknowledgement fails
     """
     print("Sending message:", flag + value)
     if socket.send(flag + value, rai):
         print("Send successful")
     else:
         print("Send failed")
+    if ack:
+        if resends > 0:
+            print("Waiting for acknowledgement")
+            time.sleep(1)
+            if flag + value == socket.recv(8):
+                print("Message acknowledged")
+            else:
+                print("Message not acknowledged, resending")
+                send_away(flag, value, rai, True, resends - 1)
+        else:
+            print("Message failed to acknowledge, dropping it")
 
 
 previous_ticks = 0
@@ -158,8 +167,6 @@ timer = Timer(-1)
 
 arrival_btn = Pin(28, Pin.IN)
 departure_btn = Pin(6, Pin.IN)
-
-last_msg = ""
 
 RGB_LEDS = neopixel.NeoPixel(Pin(16), 3, bpp=4)
 
