@@ -53,7 +53,7 @@ def arrival() -> None:
     spz = spz_gen()
     save_to_local(spz)
     time.sleep(3)
-    send_away("i", spz, ack=False)  # disabled until fix is available
+    send_away("i", spz, ack=True)
 
 
 def departure() -> None:
@@ -65,7 +65,7 @@ def departure() -> None:
     time.sleep(3)
     if spz == "":
         return
-    send_away("o", spz, ack=False)  # disabled until fix is available
+    send_away("o", spz, ack=True)
 
 
 def get_car_num() -> int:
@@ -151,7 +151,9 @@ def send_away(flag: str, value: str, rai: int = 2, ack: bool = False, resends: i
         if resends > 0:
             print("Waiting for acknowledgement")
             time.sleep(1)
-            if flag + value == socket.recv(8):
+            ack_content = socket.recv()
+            print("ACK message: ", ack_content)
+            if flag + value == ack_content[1]:
                 print("Message acknowledged")
             else:
                 print("Message not acknowledged, resending")
