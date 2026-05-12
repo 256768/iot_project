@@ -40,7 +40,7 @@ SOFTWARE
 - Modul `config.py` pro konfiguraci sítě a parametrů parkoviště.
 - Webové rozhraní pro zobrazení stavu parkoviště
 
-![BPC-IOT board v3](img/device.jpeg)
+![BPC-IOT board v3](img/board-info.png)
 > Obr. 1: BPC-IOT board v3
 
 ## Volba použité přenosové technologie a zdůvodnění.
@@ -91,10 +91,11 @@ Zařízení bude stacionární, rozvod je již v budově zaveden.
 ## Ukázka fungování/výsledky
 Po zapnutí zařízení se modul **BG77** přihlásí do sítě (**NB-IoT/LTE-CatM**). Mikrokontrolér následně vyhodnotí stav parkovacích míst (z lokálního souboru `spz.txt`) a sestaví zprávu dle vlastního ASCII protokolu. Zpráva je přes **UDP** odeslána na server. Server zprávu přijme, rozparsuje a aktualizuje webové rozhraní. Uživatel tak v reálném čase vidí změnu obsazenosti parkoviště.
 
-Při příjezdu vozidla (simulujeme stisknutím levého tlačítka) se levá LED rozsvítí žlutě pro signalizaci otevření vjezdové brány. Sejme se RZ vozidla a zapíše do lokálně uloženého souboru `spz.txt`.
+*Umístění tlačítek a RGB LEDek můžeme vidět na Obr. 1*
+Při příjezdu vozidla (simulujeme stisknutím levého tlačítka *BUT1*) se levá LED (*RGB0*) rozsvítí žlutě pro signalizaci otevření vjezdové brány. Sejme se RZ vozidla a zapíše do lokálně uloženého souboru `spz.txt`.
 RZ se následně přenese na server a zobrazí ve webovém prostředí viz *Obr. 5*.
-Při naplnění parkoviště se levá LED rozsvítí červeně. Žádné další vozidlo již nebude vpuštěno.
-Odjezd (simulujeme pravým tlačítkem) je signalizován pravou LED, která se rozsvítí modře pro signalizaci otevření odjezdové brány. Z databáze je pak dané vozidlo odstraněno.
+Při naplnění parkoviště se levá LED (*RGB0*) rozsvítí červeně. Žádné další vozidlo již nebude vpuštěno.
+Odjezd (simulujeme pravým tlačítkem *BUT0*) je signalizován pravou LED (*RGB1*), která se rozsvítí modře pro signalizaci otevření odjezdové brány. Z databáze je pak dané vozidlo odstraněno.
 
 > [!IMPORTANT]
 > Ukázkové video funkčnosti [zde.](https://www.youtube.com/watch?v=PwyhHFiYWF4)
