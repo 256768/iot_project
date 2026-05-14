@@ -3,7 +3,7 @@ A semestral project for a BPC-IOT course at BUT FEEC.
 Technical description is in Czech (at least temporarily).
 
 ### Vypracovali:
-Vojtěch Trunda ID: \
+Vojtěch Trunda ID: 247190\
 Petr Křupka ID: 256768\
 Jan Baňař ID: 256720\
 Filip Křivánek ID: 260524
