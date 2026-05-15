@@ -1,4 +1,4 @@
-# 🚥🚗Vjezdový a odjezdový systém podzemního parkoviště
+# 🚥🚗Vjezdový a výjezdový systém podzemního parkoviště
 Dokumentace pro semestrální projekt v předmětu BPC-IoT na FEKT VUT.\
 
 ### Vypracovali:
