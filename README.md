@@ -1,5 +1,5 @@
 # 🚥🚗Vjezdový a výjezdový systém podzemního parkoviště
-Dokumentace pro semestrální projekt v předmětu BPC-IoT na FEKT VUT.\
+Dokumentace pro semestrální projekt v předmětu BPC-IoT na **FEKT VUT**.
 
 ### Vypracovali:
 Vojtěch Trunda ID: 247190\
@@ -88,7 +88,7 @@ Napájení je provedeno síťovým adaptérem, napájecí soustava 230 V/50 Hz.
 Zařízení bude stacionární, rozvod je již v budově zaveden.
 
 ## Ukázka fungování/výsledky
-Po zapnutí zařízení se modul **BG77** přihlásí do sítě (**NB-IoT/LTE-CatM**). Mikrokontrolér následně vyhodnotí stav parkovacích míst (z lokálního souboru `spz.txt`) a sestaví zprávu dle vlastního ASCII protokolu. Zpráva je přes **UDP** odeslána na server. Server zprávu přijme, rozparsuje a aktualizuje webové rozhraní. Uživatel tak v reálném čase vidí změnu obsazenosti parkoviště.
+Po zapnutí zařízení se modul **BG77** přihlásí do sítě (**NB-IoT/LTE-CatM**). Mikrokontrolér v časových intervalech vyhodnotí stav parkovacích míst (z lokálního souboru `spz.txt`). Zpráva je přes **UDP** odeslána na server. Server zprávu přijme, rozparsuje a aktualizuje webové rozhraní. Uživatel tak vidí změnu obsazenosti parkoviště a aktuální RZ vozidel na parkovišti.
 
 *Umístění tlačítek a RGB LEDek můžeme vidět na Obr. 1*
 Při příjezdu vozidla (simulujeme stisknutím levého tlačítka *BUT1*) se levá LED (*RGB0*) rozsvítí žlutě pro signalizaci otevření vjezdové brány. Sejme se RZ vozidla a zapíše do lokálně uloženého souboru `spz.txt`.
