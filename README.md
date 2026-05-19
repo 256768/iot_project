@@ -29,7 +29,7 @@ Aplikace je postavena na bázi stavového automatu v jazyce *MicroPython*, kter�
 ## Využité komponenty
 HARDWARE\
 Hlavní komponentou je vývojová deska **BPC-IOT board v3**.
-- Mikrokontrolér s podporou *MicroPython* - **Raspberry Pi Pico**
+- Mikrokontrolér s podporou *MicroPython* - **RP2040**
 - Komunikační modul **Quectel BG77**
 - 3x RGB LED dioda pro signalizaci
 - 2x mikrospínač pro simulaci vjezdu a výjezdu
