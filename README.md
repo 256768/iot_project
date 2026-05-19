@@ -85,7 +85,7 @@ U stavových informací se přenáší oddělené čárkami hodnoty **RSRP, SINR
 
 ## Volba napájecí soustavy a zdůvodnění
 Napájení je provedeno síťovým adaptérem, napájecí soustava 230 V/50 Hz.
-Zařízení bude stacionární, rozvod je již v budově zaveden.
+Zařízení bude stacionární, rozvod je již v budově zaveden a tedy není potřeba bateriový systém ani optimalizace napájení. 
 
 ## Ukázka fungování/výsledky
 Po zapnutí zařízení se modul **BG77** přihlásí do sítě (**NB-IoT/LTE-CatM**). Mikrokontrolér v časových intervalech vyhodnotí stav parkovacích míst (z lokálního souboru `spz.txt`). Zpráva je přes **UDP** odeslána na server. Server zprávu přijme, rozparsuje a aktualizuje webové rozhraní. Uživatel tak vidí změnu obsazenosti parkoviště a aktuální RZ vozidel na parkovišti.
