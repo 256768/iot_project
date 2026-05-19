@@ -97,7 +97,7 @@ Při naplnění parkoviště se levá LED (*RGB0*) rozsvítí červeně. Žádn�
 Odjezd (simulujeme pravým tlačítkem *BUT0*) je signalizován pravou LED (*RGB1*), která se rozsvítí modře pro signalizaci otevření odjezdové brány. Z databáze je pak dané vozidlo odstraněno.
 
 > [!IMPORTANT]
-> Ukázkové video funkčnosti [zde.](https://www.youtube.com/watch?v=PwyhHFiYWF4)
+> Ukázkové video funkčnosti [zde.](https://youtu.be/Z40XAivwLq0)
 
 ![Webové rozhraní](img/webgui.png)
 > Obr. 5: Webové rozhraní zobrazující stav parkoviště
